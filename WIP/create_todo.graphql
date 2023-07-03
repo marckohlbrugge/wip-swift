@@ -1,0 +1,7 @@
+mutation createTodo($body: String!, $completed_at: DateTime, $attachments: [AttachmentInput], $broadcast: Boolean) {
+  createTodo(input: { body: $body, completed_at: $completed_at, attachments: $attachments, broadcast: $broadcast }) {
+    id
+    body
+    completed_at
+  }
+}

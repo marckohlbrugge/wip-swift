@@ -1,0 +1,8 @@
+query pendingTodos($filter: String) {
+  viewer {
+    todos(filter: $filter, completed: false, limit: 100) {
+      id
+      body
+    }
+  }
+}

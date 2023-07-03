@@ -1,0 +1,240 @@
+# A pending or completed todo. (Might be renamed to todo or task later on)
+type Attachment {
+  # Aspect ratio
+  aspectRatio: Float
+
+  # When the todo was created
+  createdAt: DateTime!
+
+  # File name
+  filename: String!
+  id: ID!
+
+  # Mime Type
+  mimeType: String!
+
+  # File size in bytes
+  size: Int!
+
+  # When the todo was last updated
+  updatedAt: DateTime!
+
+  # URL to attachment
+  url: String!
+}
+
+# An attachment
+input AttachmentInput {
+  # Key as supplied by createPresignedUrl
+  key: String!
+
+  # Original file name
+  filename: String!
+
+  # File size in bytes
+  size: Int!
+}
+
+# An ISO 8601-encoded datetime
+scalar DateTime
+
+# An image. Set height/weight with parameters 'h' and 'w'.
+scalar Image
+
+scalar JSON
+
+type Mutation {
+  completeTodo(
+    id: ID!
+    attachments: [AttachmentInput]
+
+    # Whether to broadcast the todo to chat. Only accessible to white-listed apps
+    broadcast: Boolean
+  ): Todo
+  createPresignedUrl(input: PresignedUrlInput!): PresignedUrl
+  createTodo(input: TodoInput!): Todo
+  deleteTodo(id: ID!): ID
+  uncompleteTodo(id: ID): Todo
+  updateTodoBody(id: ID!, input: TodoInput!): Todo
+}
+
+# An image or video. Could be attached to a variety of types.
+type PresignedUrl {
+  # Fields
+  fields: JSON!
+
+  # Headers
+  headers: JSON!
+
+  # Method
+  method: String!
+
+  # URL
+  url: String!
+}
+
+# Returns a temporary S3 presigned url to upload a file
+input PresignedUrlInput {
+  # File name
+  filename: String!
+
+  # Name of the model to which the file will be attached
+  modelName: String!
+
+  # Name of the attribute to which the file will be attached
+  attributeName: String!
+
+  # ID of the model to which the file will be attached
+  modelId: ID!
+}
+
+# A project a user is working on
+type Project {
+  # When project was added to WIP
+  created_at: DateTime!
+
+  # Todos containing this hashtag will , null: true
+  #   automatically be linked to this project. Unique to user,   but not necesarily unique across all users.
+  hashtag: String
+  id: ID!
+
+  # Who's working on the project
+  makers: [User!]
+
+  # Name of the project
+  name: String!
+
+  # Short description of the project
+  pitch: String!
+  todos(
+    completed: Boolean
+    limit: Int = 20
+    offset: Int = 0
+    filter: String
+    orderBy: TodoOrderByInput
+  ): [Todo!]
+
+  # When project was last updated on WIP
+  updated_at: DateTime!
+
+  # Link to project on WIP
+  url: String!
+
+  # [DEPRECATED]
+  users: [User!] @deprecated(reason: "Use `makers` instead")
+
+  # Link to project's external site
+  website_url: String
+}
+
+type Query {
+  # [DEPRECATED]
+  products(limit: Int = 20): [Project!]
+    @deprecated(reason: "Use `projects` instead")
+  project(id: ID!): Project
+
+  # Projects people are working on
+  projects(limit: Int = 20): [Project!]
+  todo(id: ID!): Todo
+
+  # Todos posted by makers
+  todos(
+    completed: Boolean
+    projectIds: [Int!]
+    limit: Int = 20
+    offset: Int = 0
+    filter: String
+    orderBy: TodoOrderByInput
+  ): [Todo!]
+  user(id: ID, username: String): User
+
+  # Current user
+  viewer: User!
+}
+
+enum Sort {
+  # Ascending
+  asc
+
+  # Descending
+  desc
+}
+
+# A pending or completed todo. (Might be renamed to todo or task later on)
+type Todo {
+  # Image or videos
+  attachments: [Attachment!]
+
+  # Description of the todo
+  body: String!
+
+  # When the todo was completed
+  completed_at: DateTime
+
+  # When the todo was created
+  created_at: DateTime!
+  id: ID!
+
+  # [DEPRECATED] The project this todo is for
+  product: Project @deprecated(reason: "Use `project` instead")
+
+  # The project this todo is for
+  project: Project
+
+  # When the todo was last updated
+  updated_at: DateTime!
+
+  # Link to todo on WIP
+  url: String!
+
+  # Who added the todo
+  user: User!
+}
+
+# A pending or completed todo.
+input TodoInput {
+  # Description of the todo
+  body: String!
+
+  # When the todo was completed. Empty means it's not completed yet
+  completed_at: DateTime
+
+  # Attachments usch as images/videos
+  attachments: [AttachmentInput]
+
+  # Whether to broadcast the todo to chat. Only accessible to white-listed apps
+  broadcast: Boolean
+}
+
+input TodoOrderByInput {
+  createdAt: Sort
+  updatedAt: Sort
+  completedAt: Sort
+  position: Sort
+}
+
+type User {
+  avatar_url(w: Int = 64, h: Int = 64): Image
+  best_streak: Int!
+  completed_todos_count: Int!
+  first_name: String
+  id: ID!
+  last_name: String
+
+  # [DEPRECATED]
+  products: [Project!] @deprecated(reason: "Use `projects` instead")
+  projects: [Project!]
+  streak: Int!
+  streaking: Boolean!
+  time_zone: String!
+  todos(
+    completed: Boolean
+    projectIds: [Int!]
+    limit: Int = 20
+    offset: Int = 0
+    filter: String
+    orderBy: TodoOrderByInput
+  ): [Todo!]
+  url: String!
+  username: String
+}
